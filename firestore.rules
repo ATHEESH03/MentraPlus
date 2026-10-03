@@ -1,0 +1,85 @@
+// firestore.rules — production-grade. Deploy with: firebase deploy --only firestore:rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() { return request.auth != null; }
+    function isOwner(uid) { return isAuth() && request.auth.uid == uid; }
+    function safeStr(v, max) { return v is string && size(v) > 0 && size(v) <= max; }
+    function inArr(arr, v) { return v in arr; }
+
+    // ---------- PRIVATE WELLBEING SUBTREE (owner-only, full lock-down) ----------
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && request.resource.data.uid == request.auth.uid
+        && safeStr(request.resource.data.displayName, 40)
+        && safeStr(request.resource.data.handle, 24);
+
+      // Everything under a user doc is private to that user.
+      match /checkIns/{id}            { allow read, write: if isOwner(uid); }
+      match /journalEntries/{id}      { allow read, write: if isOwner(uid); }
+      match /assessmentResults/{id}   { allow read, write: if isOwner(uid); }
+      match /drafts/{id}              { allow read, write: if isOwner(uid); }
+      match /experiments/{id} {
+        allow read, write: if isOwner(uid);
+        match /attempts/{aid} { allow read, write: if isOwner(uid); }
+      }
+      match /strategies/{id}          { allow read, write: if isOwner(uid); }
+      match /insights/{id}            { allow read, write: if isOwner(uid); }
+      match /conversations/{id} {
+        allow read, write: if isOwner(uid);
+        match /messages/{mid} { allow read, write: if isOwner(uid); }
+      }
+      match /achievements/{id}        { allow read, write: if isOwner(uid); }
+      match /bookmarks/{postId}       { allow read, write: if isOwner(uid); }
+    }
+
+    // ---------- COMMUNITY (pseudonymous, intentionally public reads) ----------
+    match /communityPosts/{postId} {
+      // Public read of non-deleted posts (never exposes private collections).
+      allow get: if request.auth != null && resource.data.deleted != true;
+      allow list: if request.auth != null;
+
+      allow create: if isAuth()
+        && request.resource.data.authorId == request.auth.uid
+        && safeStr(request.resource.data.authorHandle, 24)
+        && safeStr(request.resource.data.body, 2000)
+        && safeStr(request.resource.data.topic, 40)
+        && request.resource.data.likeCount == 0
+        && request.resource.data.deleted == false;
+
+      // Author-only edit/delete; likeCount only changes via like subcollection.
+      allow update: if isAuth()
+        && resource.data.authorId == request.auth.uid
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.likeCount == resource.data.likeCount;
+      allow delete: if isAuth() && resource.data.authorId == request.auth.uid;
+
+      match /likes/{userId} {
+        allow get, list: if request.auth != null;
+        // doc id == userId guarantees uniqueness; only self can like/unlike.
+        allow create: if isAuth() && request.auth.uid == userId
+          && safeStr(request.resource.data.uid, 60);
+        allow delete: if isAuth() && request.auth.uid == userId;
+      }
+
+      match /comments/{commentId} {
+        allow get, list: if request.auth != null;
+        allow create: if isAuth()
+          && request.resource.data.authorId == request.auth.uid
+          && safeStr(request.resource.data.authorHandle, 24)
+          && safeStr(request.resource.data.body, 1000);
+        allow update, delete: if isAuth() && resource.data.authorId == request.auth.uid;
+      }
+    }
+
+    // Reports: creator can read their own; privileged moderation via Admin SDK server-side.
+    match /communityReports/{reportId} {
+      allow create: if isAuth()
+        && safeStr(request.resource.data.reason, 500)
+        && request.resource.data.reportedBy == request.auth.uid;
+      allow get: if isAuth() && resource.data.reportedBy == request.auth.uid;
+    }
+  }
+}
