@@ -41,8 +41,8 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '25 mins',
     tag: 'Study & Focus',
     icon: '🎯',
-    instructions: 'Put your phone in another room or on Do Not Disturb. Study for exactly 25 minutes, then stop for a 5-minute stretch.',
-    whyUseful: 'Overcomes revision dread, sets clear boundaries, and prevents mental burnout during long study sessions.',
+    instructions: 'Put your phone on Do Not Disturb. Study for exactly 25 minutes, then take a dedicated 5-minute physical stretch.',
+    whyUseful: 'Overcomes starting resistance, sets clear boundaries, and prevents revision fatigue during long study sessions.',
   },
   {
     id: 'exam-calm-478',
@@ -51,8 +51,8 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '2 mins',
     tag: 'Stress & Panic',
     icon: '🌬️',
-    instructions: 'Inhale quietly through your nose for 4 seconds, gently hold for 7 seconds, then exhale completely through your mouth for 8 seconds. Repeat 4 times.',
-    whyUseful: 'Physiologically triggers your parasympathetic brake, dropping racing pulse before tests or presentations.',
+    instructions: 'Inhale through nose for 4s, gently hold breath for 7s, exhale completely through mouth for 8s. Repeat 4 cycles.',
+    whyUseful: 'Physiologically triggers your parasympathetic brake to reduce a racing heart before tests or presentations.',
   },
   {
     id: 'brain-dump-worry',
@@ -61,8 +61,8 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '3 mins',
     tag: 'Stress & Panic',
     icon: '🧠',
-    instructions: 'Before starting a study block or going to bed, write down every distracting thought, deadline, and worry on scratch paper, then close it.',
-    whyUseful: 'Cleans working memory out of your brain onto paper so your mind stops cycling through open loops.',
+    instructions: 'Before starting a study block or going to bed, scribble down all open tasks and racing worries on paper, then close it.',
+    whyUseful: 'Offloads working memory burden so your mind stops cycling through open loops while trying to sleep or study.',
   },
   {
     id: 'sunlight-walk-10',
@@ -71,7 +71,7 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '10 mins',
     tag: 'Movement',
     icon: '👣',
-    instructions: 'Step outside between study blocks without looking at screens. Walk at an easy pace and look at trees, sky, and horizon.',
+    instructions: 'Step outside between study blocks with no screens. Walk at an easy pace and let your eyes adjust to distance.',
     whyUseful: 'Resets circadian alertness, relieves near-distance eye strain from monitors, and clears heavy cognitive fog.',
   },
   {
@@ -81,8 +81,8 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '3 mins',
     tag: 'Stress & Panic',
     icon: '🌿',
-    instructions: 'Silently identify 5 things you see, 4 things you can physically touch, 3 sounds you hear, 2 scents, and 1 taste.',
-    whyUseful: 'Stops acute anxiety or sensory detachment in crowded libraries or exam halls by anchoring into physical reality.',
+    instructions: 'Name 5 things you see, 4 you feel physically, 3 sounds you hear, 2 scents, and 1 taste around you right now.',
+    whyUseful: 'Stops acute anxiety or sensory detachment in busy libraries or halls by anchoring your senses to physical reality.',
   },
   {
     id: 'one-bite-rule',
@@ -91,8 +91,8 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '2 mins',
     tag: 'Study & Focus',
     icon: '🍰',
-    instructions: 'When paralyzed by an overwhelming assignment or paper, commit to doing only 2 minutes (e.g. create the document and write 1 sentence).',
-    whyUseful: 'Starting is 90% of the cognitive friction; once the threshold is crossed, momentum naturally takes over.',
+    instructions: 'When dreading an overwhelming paper or assignment, commit to doing only 2 minutes (e.g. write just one sentence).',
+    whyUseful: 'Starting is 90% of the cognitive friction; once the barrier is crossed, momentum naturally takes over.',
   },
   {
     id: 'digital-sunset-30',
@@ -101,8 +101,8 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '30 mins',
     tag: 'Sleep & Rest',
     icon: '📵',
-    instructions: 'Turn off screens 30 minutes before bed. Dim bright overhead lights and switch to audio, reading, or slow stretching.',
-    whyUseful: 'Protects deep sleep architecture and hippocampal memory consolidation after a long day of learning.',
+    instructions: 'Turn off screens 30 minutes before bed. Dim overhead lights and switch to low-stimulus audio or slow stretching.',
+    whyUseful: 'Protects deep sleep architecture and hippocampal memory consolidation after a heavy day of learning.',
   },
   {
     id: 'study-buddy-checkin',
@@ -111,8 +111,8 @@ const SUGGESTED_STUDENT_ACTIVITIES: StudentActivity[] = [
     duration: '10 mins',
     tag: 'Social',
     icon: '☕',
-    instructions: 'Send a voice note or grab coffee with a classmate to share one task you completed and one challenge you faced today.',
-    whyUseful: 'Breaks academic isolation, normalizes student stress, and provides gentle mutual accountability.',
+    instructions: 'Send a quick voice note or meet a peer for coffee to share one task you completed and one challenge you faced today.',
+    whyUseful: 'Breaks academic isolation, normalizes normal student stress, and provides gentle mutual encouragement.',
   },
 ];
 
@@ -237,8 +237,8 @@ export default function PlaybookPage() {
       </div>
 
       {/* SECTION 1: SUGGESTED STUDENT ACTIVITIES */}
-      <div className="rounded-xl2 bg-gradient-to-b from-card to-paper-soft border border-line p-6 shadow-soft space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
+      <div className="rounded-xl2 bg-gradient-to-b from-card to-paper-soft border border-line p-5 sm:p-6 shadow-soft space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 border-b border-line pb-4">
           <div>
             <span className="text-xs uppercase tracking-wider font-bold text-teal-deep">
               🌟 Curated for Students
@@ -252,7 +252,7 @@ export default function PlaybookPage() {
           </div>
 
           {/* Tag Filter Chips */}
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 lg:justify-end shrink-0">
             {['All', 'Study & Focus', 'Stress & Panic', 'Sleep & Rest', 'Movement', 'Social'].map((tag) => (
               <button
                 key={tag}
@@ -269,8 +269,8 @@ export default function PlaybookPage() {
           </div>
         </div>
 
-        {/* Suggested Activities Grid */}
-        <div className="grid md:grid-cols-2 gap-4">
+        {/* Suggested Activities Grid — Uniform 2-Column Responsive Layout */}
+        <div className="grid sm:grid-cols-2 gap-4">
           {filteredSuggested.map((act) => {
             const isAlreadyAdded = existingNames.has(act.name.toLowerCase());
             const isBusy = addingActivityId === act.id;
@@ -278,41 +278,47 @@ export default function PlaybookPage() {
             return (
               <div
                 key={act.id}
-                className="rounded-xl bg-card border border-line p-4.5 shadow-soft hover:border-teal/40 transition flex flex-col justify-between space-y-3"
+                className="rounded-xl bg-card border border-line p-5 shadow-soft hover:border-teal/40 transition flex flex-col justify-between h-full"
               >
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl p-1 bg-paper-deep rounded-lg">
+                <div className="flex-1 flex flex-col gap-3">
+                  {/* Card Header: Icon, Name, Category & Tag */}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-2xl w-10 h-10 shrink-0 bg-paper-deep rounded-xl flex items-center justify-center">
                         {act.icon}
                       </span>
-                      <div>
-                        <h3 className="font-display text-base text-ink font-semibold">
+                      <div className="min-w-0">
+                        <h3 className="font-display text-base text-ink font-semibold truncate">
                           {act.name}
                         </h3>
-                        <span className="text-[11px] font-medium text-teal-deep">
+                        <span className="text-[11px] font-medium text-teal-deep block truncate">
                           {act.category} • {act.duration}
                         </span>
                       </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-paper-deep text-ink-mute font-medium">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-paper-deep text-ink-mute font-medium shrink-0 whitespace-nowrap mt-0.5">
                       {act.tag}
                     </span>
                   </div>
 
-                  <p className="text-xs text-ink-soft leading-relaxed">
+                  {/* Instructions Body */}
+                  <p className="text-xs text-ink-soft leading-relaxed min-h-[36px]">
                     {act.instructions}
                   </p>
 
-                  <div className="text-[11px] text-ink-mute bg-paper-deep/60 p-2.5 rounded-lg border border-line/60">
-                    <strong className="text-ink-soft font-semibold">Why it works:</strong>{' '}
-                    {act.whyUseful}
+                  {/* Why it works callout */}
+                  <div className="text-[11px] text-ink-mute bg-paper-deep/60 p-2.5 rounded-xl border border-line/60 min-h-[52px] flex items-center">
+                    <div>
+                      <strong className="text-ink-soft font-semibold">Why it works:</strong>{' '}
+                      {act.whyUseful}
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-line/50 flex flex-wrap items-center justify-between gap-2">
+                {/* Card Action Footer */}
+                <div className="mt-4 pt-3 border-t border-line/60 flex items-center justify-between gap-2">
                   {isAlreadyAdded ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-teal-deep font-semibold bg-teal/10 px-3 py-1.5 rounded-lg">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-teal-deep font-semibold bg-teal/10 px-3 py-1.5 rounded-lg">
                       <span>✓</span> In Your Playbook
                     </span>
                   ) : (
@@ -321,7 +327,7 @@ export default function PlaybookPage() {
                       disabled={isBusy}
                       className="bg-ink text-paper px-3.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-ink-soft transition shadow-soft disabled:opacity-50"
                     >
-                      {isBusy ? 'Adding...' : '+ Add to My Playbook'}
+                      {isBusy ? 'Adding...' : '+ Add to Playbook'}
                     </button>
                   )}
 
@@ -329,7 +335,7 @@ export default function PlaybookPage() {
                     href={`/app/experiments/new?strategy=${encodeURIComponent(
                       act.name
                     )}&question=${encodeURIComponent(`Does practicing ${act.name} help reduce my study stress?`)}`}
-                    className="text-xs text-coral-deep hover:underline font-medium"
+                    className="text-xs text-coral-deep hover:underline font-medium whitespace-nowrap"
                   >
                     Start 3-Day Test →
                   </Link>
@@ -360,7 +366,7 @@ export default function PlaybookPage() {
 
         {/* Custom Strategy Form (Collapsible or toggleable) */}
         {showAddForm && (
-          <div className="rounded-xl2 bg-card border-2 border-teal/30 p-6 shadow-soft space-y-4 animate-breathe-in">
+          <div className="rounded-xl2 bg-card border-2 border-teal/30 p-5 sm:p-6 shadow-soft space-y-4 animate-breathe-in">
             <div className="flex justify-between items-center">
               <h3 className="font-display text-lg text-ink font-semibold">
                 Add Your Custom Strategy
@@ -375,7 +381,7 @@ export default function PlaybookPage() {
                 <label className="text-xs uppercase tracking-wide font-medium text-ink-mute block mb-2">
                   Category
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {CATEGORIES.map((cat) => (
                     <button
                       key={cat}
@@ -393,7 +399,7 @@ export default function PlaybookPage() {
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="text-xs text-ink-mute block mb-1 font-medium">Strategy Name</label>
                   <input
@@ -415,7 +421,7 @@ export default function PlaybookPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="submit"
                   disabled={!name.trim() || saving}
@@ -435,13 +441,13 @@ export default function PlaybookPage() {
           </div>
         )}
 
-        {/* Strategies Grid */}
+        {/* Strategies Grid — Symmetrical 2-Column Layout */}
         {strategies.length === 0 ? (
           <div className="rounded-xl2 bg-paper-soft border border-line p-8 text-center text-xs text-ink-mute">
-            No strategies registered in your personal catalog yet. Click "+ Add to My Playbook" on any suggested activity above or add a custom strategy.
+            No strategies registered in your personal catalog yet. Click "+ Add to Playbook" on any suggested activity above or add a custom strategy.
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4">
             {strategies.map((s) => {
               const ev = getEvidence(s);
               const helpful = ev.filter(
@@ -452,16 +458,22 @@ export default function PlaybookPage() {
               return (
                 <div
                   key={s.id}
-                  className="rounded-xl2 bg-card border border-line p-5 shadow-soft space-y-3 flex flex-col justify-between"
+                  className="rounded-xl bg-card border border-line p-5 shadow-soft hover:border-teal/30 transition flex flex-col justify-between h-full"
                 >
-                  <div>
-                    <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-display text-base text-ink font-semibold">
-                        {s.name}
-                      </h3>
+                  <div className="flex-1 flex flex-col gap-2.5">
+                    {/* Header: Title, Category & Star */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h3 className="font-display text-base text-ink font-semibold truncate">
+                          {s.name}
+                        </h3>
+                        <span className="inline-block text-[11px] font-medium text-teal-deep bg-teal/10 px-2.5 py-0.5 rounded-full mt-1">
+                          {s.category}
+                        </span>
+                      </div>
                       <button
                         onClick={() => handleToggleFavorite(s)}
-                        className={`text-lg transition ${
+                        className={`text-xl transition p-1 shrink-0 ${
                           s.favorite ? 'text-amber-500' : 'text-ink-mute hover:text-amber-500'
                         }`}
                         aria-label="Toggle favorite"
@@ -469,38 +481,40 @@ export default function PlaybookPage() {
                         {s.favorite ? '★' : '☆'}
                       </button>
                     </div>
-                    <span className="inline-block text-[11px] font-medium text-teal-deep bg-teal/10 px-2.5 py-0.5 rounded-full mt-1">
-                      {s.category}
-                    </span>
-                    {s.notes && (
-                      <p className="text-xs text-ink-soft mt-2 leading-relaxed">
-                        {s.notes}
-                      </p>
-                    )}
-                  </div>
 
-                  <div className="text-xs p-3 rounded-xl bg-paper-soft border border-line text-ink-soft space-y-1">
-                    {ev.length === 0 ? (
-                      <span className="italic text-ink-mute text-[11px]">
-                        Not yet logged in check-ins — select this during your next check-in to build personal evidence.
-                      </span>
-                    ) : (
-                      <div>
-                        <div className="flex justify-between items-baseline">
-                          <span>
-                            Logged in <strong>{ev.length}</strong> check-in{ev.length === 1 ? '' : 's'}
-                          </span>
-                          <span className={`font-semibold ${helpfulRate >= 60 ? 'text-teal-deep' : 'text-amber-600'}`}>
-                            {helpfulRate}% helpful
-                          </span>
+                    {/* Notes Box */}
+                    <div className="text-xs text-ink-soft leading-relaxed min-h-[34px] flex items-center">
+                      {s.notes ? (
+                        <p>{s.notes}</p>
+                      ) : (
+                        <span className="text-ink-mute/70 italic">No custom notes added.</span>
+                      )}
+                    </div>
+
+                    {/* Evidence Box — Pinned to bottom of content area */}
+                    <div className="mt-auto text-xs p-3 rounded-xl bg-paper-soft border border-line text-ink-soft min-h-[64px] flex flex-col justify-center">
+                      {ev.length === 0 ? (
+                        <span className="italic text-ink-mute text-[11px] leading-snug">
+                          Not yet logged in check-ins — select this during your next check-in to build personal evidence.
+                        </span>
+                      ) : (
+                        <div>
+                          <div className="flex justify-between items-baseline">
+                            <span>
+                              Logged in <strong>{ev.length}</strong> check-in{ev.length === 1 ? '' : 's'}
+                            </span>
+                            <span className={`font-semibold ${helpfulRate >= 60 ? 'text-teal-deep' : 'text-amber-600'}`}>
+                              {helpfulRate}% helpful
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-ink-mute mt-0.5">
+                            {helpfulRate >= 60
+                              ? 'Reliably effective for you.'
+                              : 'Mixed outcomes — keep exploring.'}
+                          </div>
                         </div>
-                        <div className="text-[11px] text-ink-mute mt-1">
-                          {helpfulRate >= 60
-                            ? 'Reliably effective for you.'
-                            : 'Mixed outcomes — keep exploring.'}
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               );
