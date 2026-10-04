@@ -55,17 +55,26 @@ export function Field({
 export function NoFirebase() {
   return (
     <div className="min-h-screen bg-paper grid place-items-center p-4">
-      <div className="w-full max-w-md bg-card rounded-xl3 border border-line shadow-soft p-6 text-center">
-        <h2 className="font-display text-xl text-ink">Firebase Not Configured</h2>
-        <p className="text-sm text-ink-soft mt-2">
-          Please add your Firebase web credentials to <code className="bg-paper-deep px-1.5 py-0.5 rounded text-xs">.env.local</code> and restart the development server.
+      <div className="w-full max-w-md bg-card rounded-xl3 border border-line shadow-soft p-6 sm:p-8 text-center space-y-4">
+        <div className="text-4xl">🌿</div>
+        <h2 className="font-display text-2xl text-ink">Explore Mentra+</h2>
+        <p className="text-sm text-ink-soft leading-relaxed">
+          Cloud database credentials aren't configured in <code className="bg-paper-deep px-1.5 py-0.5 rounded text-xs">.env.local</code> yet, but you can explore all features right now in <strong>Offline Demo Mode</strong>.
         </p>
-        <Link
-          href="/"
-          className="inline-block mt-4 text-sm text-teal font-medium hover:underline"
-        >
-          Return to home
-        </Link>
+        <div className="pt-2 flex flex-col gap-2">
+          <Link
+            href="/app/home"
+            className="w-full bg-coral text-white py-3 rounded-xl font-medium shadow-soft hover:bg-coral-deep transition text-sm"
+          >
+            Enter Offline Demo Mode →
+          </Link>
+          <Link
+            href="/"
+            className="w-full border border-line py-2.5 rounded-xl text-xs text-ink-mute hover:text-ink transition"
+          >
+            Return to Landing Page
+          </Link>
+        </div>
       </div>
     </div>
   );
