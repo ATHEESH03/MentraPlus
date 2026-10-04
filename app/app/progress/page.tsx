@@ -62,7 +62,10 @@ export default function ProgressPage() {
     irritated: 3,
   };
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   const filteredCi = ci.filter((c) => {
+    if (c.createdAt > Date.now() + 60000) return false;
     if (from && c.createdAt < new Date(from).getTime()) return false;
     if (to && c.createdAt > new Date(to).getTime() + 86400000) return false;
     return true;
@@ -90,6 +93,7 @@ export default function ProgressPage() {
           <span className="text-ink-mute font-medium">Filter date range:</span>
           <input
             type="date"
+            max={todayStr}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
             className="rounded-lg border border-line bg-card px-2.5 py-1 text-ink focus:outline-none"
@@ -97,6 +101,7 @@ export default function ProgressPage() {
           <span className="text-ink-mute">to</span>
           <input
             type="date"
+            max={todayStr}
             value={to}
             onChange={(e) => setTo(e.target.value)}
             className="rounded-lg border border-line bg-card px-2.5 py-1 text-ink focus:outline-none"

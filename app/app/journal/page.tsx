@@ -7,14 +7,17 @@ import {
   updateJournal,
   deleteJournal,
 } from '@/lib/data/journal';
-import { JournalEntry } from '@/lib/types';
+import { allCheckIns } from '@/lib/data/checkIns';
+import { JournalEntry, CheckIn } from '@/lib/types';
 import { JournalEditor } from '@/components/journal/JournalEditor';
 import { JournalCard } from '@/components/journal/JournalCard';
+import { EmotionalSummaryCard } from '@/components/journal/EmotionalSummaryCard';
 import { Spinner } from '@/components/ui/Spinner';
 
 export default function JournalPage() {
   const { user } = useAuth();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
@@ -23,8 +26,12 @@ export default function JournalPage() {
   const load = async () => {
     if (!user) return;
     try {
-      const data = await listJournal(user.uid);
+      const [data, cis] = await Promise.all([
+        listJournal(user.uid),
+        allCheckIns(user.uid),
+      ]);
       setEntries(data);
+      setCheckIns(cis);
     } catch (e) {
       console.error('Failed to load journal:', e);
     } finally {
@@ -73,10 +80,13 @@ export default function JournalPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-3xl sm:text-4xl text-ink">Private Journal</h1>
-        <p className="text-ink-soft text-sm mt-1">
-          A reflective, unhurried space for personal thoughts. Stored with full owner-only encryption in Firestore.
+        <p className="text-ink-soft text-sm mt-1 max-w-2xl leading-relaxed">
+          A reflective, unhurried space for personal thoughts and emotional self-exploration. Stored with full owner-only privacy.
         </p>
       </div>
+
+      {/* Emotional Summary & Current State Card */}
+      <EmotionalSummaryCard checkIns={checkIns} />
 
       <div className="grid lg:grid-cols-5 gap-8 items-start">
         {/* Editor Column */}

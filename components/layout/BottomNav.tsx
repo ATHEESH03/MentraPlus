@@ -16,46 +16,61 @@ export default function BottomNav({ onMore }: { onMore: () => void }) {
 
   const item = (h: string, label: string) => {
     const key = h.split('/')[2] || 'home';
-    const active = p.startsWith(h);
+    const active = h === '/app/home' ? p === '/app/home' : p.startsWith(h);
     return (
       <Link
         href={h}
         aria-current={active ? 'page' : undefined}
-        className={`flex flex-col items-center gap-1 transition ${
-          active ? 'text-teal-deep font-semibold' : 'text-ink-mute hover:text-ink'
+        className={`flex flex-col items-center gap-1 transition relative py-1 ${
+          active ? 'text-teal-deep' : 'text-ink-mute hover:text-ink'
         }`}
       >
-        <svg
-          viewBox="0 0 24 24"
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
+        <div
+          className={`p-1.5 rounded-xl transition ${
+            active ? 'bg-teal/15 text-teal-deep' : ''
+          }`}
         >
-          <path d={I[key] || I.profile} />
-        </svg>
-        <span className="text-[11px]">{label}</span>
+          <svg
+            viewBox="0 0 24 24"
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={active ? '2.4' : '1.8'}
+          >
+            <path d={I[key] || I.profile} />
+          </svg>
+        </div>
+        <span
+          className={`text-[10px] tracking-tight ${
+            active ? 'font-bold text-teal-deep' : 'font-medium'
+          }`}
+        >
+          {label}
+        </span>
+        {active && (
+          <span className="w-1.5 h-1.5 rounded-full bg-teal absolute bottom-0 shadow-sm" />
+        )}
       </Link>
     );
   };
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden bg-card/95 backdrop-blur border-t border-line">
+    <nav className="fixed inset-x-0 bottom-0 z-40 lg:hidden bg-card/95 backdrop-blur border-t border-line shadow-lift">
       <div className="mx-auto max-w-md h-20 grid grid-cols-5 items-center px-2">
         {item('/app/home', 'Home')}
         {item('/app/map', 'Map')}
         <Link
           href="/app/check-in"
           aria-label="New check-in"
-          className="flex items-center justify-center"
+          className="flex items-center justify-center group"
         >
-          <span className="w-14 h-14 -mt-6 grid place-items-center rounded-full bg-coral text-white shadow-lift hover:scale-105 active:scale-95 transition-transform">
+          <span className="w-14 h-14 -mt-6 grid place-items-center rounded-full bg-coral text-white shadow-lift group-hover:scale-105 active:scale-95 transition-transform">
             <svg
               viewBox="0 0 24 24"
               className="w-7 h-7"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.2"
             >
               <path d={I.plus} />
             </svg>
@@ -65,18 +80,20 @@ export default function BottomNav({ onMore }: { onMore: () => void }) {
         <button
           type="button"
           onClick={onMore}
-          className="flex flex-col items-center gap-1 text-ink-mute hover:text-ink"
+          className="flex flex-col items-center gap-1 text-ink-mute hover:text-ink py-1"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span className="text-[11px]">More</span>
+          <div className="p-1.5 rounded-xl">
+            <svg
+              viewBox="0 0 24 24"
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </div>
+          <span className="text-[10px] font-medium">More</span>
         </button>
       </div>
     </nav>

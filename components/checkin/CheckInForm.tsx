@@ -19,6 +19,16 @@ const MOODS: Mood[] = [
   'irritated',
 ];
 const OUTCOMES: Outcome[] = ['better', 'helpful', 'no-change', 'worse', 'uncertain'];
+const TIME_OF_DAY_OPTIONS = ['Morning', 'Afternoon', 'Evening', 'Night'] as const;
+
+function getDefaultTimeOfDay(): string {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return 'Morning';
+  if (hour >= 12 && hour < 17) return 'Afternoon';
+  if (hour >= 17 && hour < 22) return 'Evening';
+  return 'Night';
+}
+
 const SITUATIONS = [
   'Academic pressure',
   'Social situation',
@@ -43,6 +53,8 @@ export default function CheckInForm() {
   const { user } = useAuth();
   const router = useRouter();
 
+  const [timeOfDay, setTimeOfDay] = useState<string>(getDefaultTimeOfDay());
+  const [loggedAt, setLoggedAt] = useState<number | null>(null);
   const [mood, setMood] = useState<Mood | ''>('');
   const [intensity, setIntensity] = useState(50);
   const [energy, setEnergy] = useState(50);
@@ -73,13 +85,14 @@ export default function CheckInForm() {
     }
 
     try {
+      const finalContextTags = [timeOfDay, ...tags.filter((t) => t !== timeOfDay)];
       const checkInData: any = {
         mood,
         intensity,
         energy,
         stress,
         situation: situation.trim() || 'General state',
-        contextTags: tags,
+        contextTags: finalContextTags,
         strategiesUsed: finalStrategies,
         outcome: outcome || 'uncertain',
       };
@@ -98,8 +111,8 @@ export default function CheckInForm() {
         // Achievement is non-blocking
       }
 
+      setLoggedAt(Date.now());
       setDone(true);
-      setTimeout(() => router.replace('/app/home'), 1200);
     } catch (e: any) {
       console.error('Save check-in error:', e);
       if (e?.code === 'permission-denied') {
@@ -114,20 +127,91 @@ export default function CheckInForm() {
 
   if (done) {
     return (
-      <div className="rounded-xl2 bg-card border border-line p-10 text-center shadow-soft animate-breathe-in">
+      <div className="rounded-xl2 bg-card border border-line p-8 sm:p-10 text-center shadow-soft animate-breathe-in max-w-lg mx-auto">
         <div className="w-16 h-16 bg-sage/20 text-teal-deep rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
           ✓
         </div>
         <h2 className="font-display text-2xl text-ink">Check-in saved</h2>
-        <p className="text-ink-soft text-sm mt-1 max-w-sm mx-auto">
-          Thank you. This record now feeds your Personal Response Map and personal insights.
+        <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-paper-soft border border-line text-xs text-teal-deep font-semibold">
+          <span>{timeOfDay === 'Morning' ? '🌅' : timeOfDay === 'Afternoon' ? '☀️' : timeOfDay === 'Evening' ? '🌆' : '🌙'}</span>
+          <span>{timeOfDay} check-in recorded at {loggedAt ? new Date(loggedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'now'}</span>
+        </div>
+        <p className="text-ink-soft text-sm mt-3 max-w-sm mx-auto leading-relaxed">
+          Thank you! You can check in multiple times each day — whenever your focus, mood, or energy levels change.
         </p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.push('/app/home')}
+            className="bg-teal text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-teal-deep transition shadow-soft"
+          >
+            Dashboard
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMood('');
+              setIntensity(50);
+              setEnergy(50);
+              setStress(50);
+              setSituation('');
+              setThought('');
+              setStrats([]);
+              setCustomStrat('');
+              setOutcome('');
+              setDone(false);
+            }}
+            className="bg-paper-deep text-ink px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-paper-soft border border-line transition"
+          >
+            + Log another check-in
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push('/app/map')}
+            className="text-xs text-ink-soft hover:text-teal-deep underline py-2.5 px-2"
+          >
+            Response Map →
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <form onSubmit={submit} className="max-w-xl space-y-6">
+      {/* Multiple Check-ins Encouragement Banner */}
+      <div className="rounded-xl2 bg-paper-soft border border-teal/20 p-4 flex items-start gap-3">
+        <div className="text-xl">☀️</div>
+        <div className="text-xs text-ink-soft leading-relaxed">
+          <span className="font-semibold text-ink">Log anytime throughout your day:</span> Mentra+ supports multiple check-ins per day so you can capture morning energy, midday study slumps, and evening wind-downs.
+        </div>
+      </div>
+
+      {/* Time of Day Selector */}
+      <div className="rounded-xl2 bg-paper-soft border border-line p-5">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs uppercase tracking-wide font-semibold text-ink-mute">
+            Check-in Period
+          </label>
+          <span className="text-[11px] text-teal-deep font-medium">Auto-detected for now</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {TIME_OF_DAY_OPTIONS.map((tod) => (
+            <Chip
+              key={tod}
+              active={timeOfDay === tod}
+              onClick={() => setTimeOfDay(tod)}
+            >
+              {tod === 'Morning' && '🌅 '}
+              {tod === 'Afternoon' && '☀️ '}
+              {tod === 'Evening' && '🌆 '}
+              {tod === 'Night' && '🌙 '}
+              {tod}
+            </Chip>
+          ))}
+        </div>
+      </div>
+
       <div className="rounded-xl2 bg-paper-soft border border-line p-5">
         <label className="text-xs uppercase tracking-wide font-semibold text-ink-mute block mb-2">
           1. How are you feeling right now?

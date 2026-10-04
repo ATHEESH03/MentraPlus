@@ -7,7 +7,7 @@ import { listExperiments, listAttempts } from '@/lib/data/experiments';
 import { deriveInsights, STATUS_META } from '@/lib/insights/engine';
 import { listInsights } from '@/lib/data/insightsRepo';
 import { listAssessments } from '@/lib/data/assessments';
-import { relTime } from '@/lib/utils';
+import { relTime, fmtTime } from '@/lib/utils';
 import CheckInCTA from '@/components/checkin/CheckInCTA';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -91,28 +91,46 @@ export default function Home() {
               </Link>
             </div>
             <div className="divide-y divide-line">
-              {ci.slice(0, 5).map((c) => (
-                <div key={c.id} className="py-3 flex justify-between items-baseline gap-4 text-sm">
-                  <div className="text-ink-soft">
-                    <span className="font-medium text-ink">{c.situation || '—'}</span>
-                    {' → '}
-                    <span className="text-amber-600">{c.mood}</span>
-                    {c.strategiesUsed?.length ? (
-                      <>
+              {ci.slice(0, 5).map((c) => {
+                const timeOfDayTag = c.contextTags?.find((t: string) =>
+                  ['Morning', 'Afternoon', 'Evening', 'Night'].includes(t)
+                );
+                return (
+                  <div key={c.id} className="py-3 flex justify-between items-baseline gap-4 text-sm">
+                    <div className="text-ink-soft min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-ink">{c.situation || '—'}</span>
+                        {timeOfDayTag && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-paper-deep text-teal-deep font-medium">
+                            {timeOfDayTag}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs mt-1 text-ink-mute">
+                        <span className="text-amber-600 font-medium">{c.mood}</span>
+                        {c.strategiesUsed?.length ? (
+                          <>
+                            {' → '}
+                            <span className="text-teal-deep font-medium">
+                              {c.strategiesUsed.join(', ')}
+                            </span>
+                          </>
+                        ) : null}
                         {' → '}
-                        <span className="text-teal-deep font-medium">
-                          {c.strategiesUsed.join(', ')}
-                        </span>
-                      </>
-                    ) : null}
-                    {' → '}
-                    <span className="text-sage font-semibold">{c.outcome}</span>
+                        <span className="text-sage font-semibold">{c.outcome}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-xs text-ink-mute block font-mono">
+                        {fmtTime(c.createdAt)}
+                      </span>
+                      <span className="text-[10px] text-ink-mute/70 block">
+                        {relTime(c.createdAt)}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-xs text-ink-mute shrink-0">
-                    {relTime(c.createdAt)}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

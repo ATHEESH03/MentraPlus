@@ -32,6 +32,18 @@ export function fmtDate(ts: number) {
   });
 }
 
+export function fmtTime(ts: number) {
+  return new Date(ts).toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+export function fmtDateTime(ts: number) {
+  const d = new Date(ts);
+  return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${fmtTime(ts)}`;
+}
+
 export function pl(n: number, s: string) {
   return `${n} ${s}${n === 1 ? '' : 's'}`;
 }

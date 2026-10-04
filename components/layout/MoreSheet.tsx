@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface MoreSheetProps {
   open: boolean;
@@ -20,6 +21,7 @@ const ITEMS = [
 ];
 
 export default function MoreSheet({ open, onClose }: MoreSheetProps) {
+  const pathname = usePathname();
   if (!open) return null;
 
   return (
@@ -29,25 +31,32 @@ export default function MoreSheet({ open, onClose }: MoreSheetProps) {
           <span className="font-display text-lg text-ink">Explore Mentra+</span>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-paper-deep text-ink-mute flex items-center justify-center font-bold"
+            className="w-8 h-8 rounded-lg bg-paper-deep text-ink-mute flex items-center justify-center font-bold hover:text-ink"
             aria-label="Close menu"
           >
             &times;
           </button>
         </div>
 
-        <nav className="mt-6 space-y-2 flex-1">
-          {ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-ink-soft hover:bg-paper-deep hover:text-ink transition text-sm font-medium"
-            >
-              <span className="text-lg">{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
+        <nav className="mt-6 space-y-1.5 flex-1">
+          {ITEMS.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-sm font-medium ${
+                  isActive
+                    ? 'bg-teal text-white shadow-soft font-semibold'
+                    : 'text-ink-soft hover:bg-paper-deep hover:text-ink'
+                }`}
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="pt-4 border-t border-line text-xs text-ink-mute">

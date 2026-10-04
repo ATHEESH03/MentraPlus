@@ -41,11 +41,16 @@ export default function ResponseMap({
     oy: number;
   } | null>(null);
 
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
   const filtered = useMemo(() => {
+    const now = Date.now();
     const ids = new Set<string>();
     model.records.forEach((r) => {
+      // Disallow any future timestamps
+      if (r.createdAt > now + 60000) return;
       if (filter.from && r.createdAt < filter.from) return;
-      if (filter.to && r.createdAt > filter.to) return;
+      if (filter.to && r.createdAt > filter.to + 86400000 - 1) return;
       ids.add(r.id);
     });
 
@@ -137,6 +142,7 @@ export default function ResponseMap({
           <span>From</span>
           <input
             type="date"
+            max={todayStr}
             value={filter.from ? new Date(filter.from).toISOString().slice(0, 10) : ''}
             onChange={(e) =>
               setFilter((f) => ({
@@ -149,6 +155,7 @@ export default function ResponseMap({
           <span>to</span>
           <input
             type="date"
+            max={todayStr}
             value={filter.to ? new Date(filter.to).toISOString().slice(0, 10) : ''}
             onChange={(e) =>
               setFilter((f) => ({
@@ -346,8 +353,17 @@ function Timeline({
     <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
       {items.map((r) => (
         <div key={r.id} className="rounded-xl bg-card border border-line p-4 text-sm shadow-soft">
-          <div className="text-ink-mute text-xs mb-1">
-            {new Date(r.createdAt).toLocaleString()}
+          <div className="flex items-center justify-between text-xs mb-1.5">
+            <span className="text-ink-mute font-medium">
+              {new Date(r.createdAt).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </span>
+            <span className="font-mono bg-paper-deep px-2 py-0.5 rounded text-[11px] text-teal-deep font-semibold">
+              {new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
           </div>
           <div className="text-ink font-medium">
             <span className="text-coral-deep">{r.situation || 'Situation'}</span> →{' '}

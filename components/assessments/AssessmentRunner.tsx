@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { AssessmentDef } from '@/lib/assessments/definitions';
 import { score } from '@/lib/assessments/scoring';
 import { saveAssessmentResult, saveDraft, getDraft } from '@/lib/data/assessments';
@@ -19,6 +20,7 @@ export function AssessmentRunner({
   const [responses, setResponses] = useState<Record<string, string>>(initialResponses);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
   const [result, setResult] = useState<{
     score: number;
     max: number;
@@ -75,42 +77,178 @@ export function AssessmentRunner({
     }
   };
 
+  const toggleStep = (idx: number) => {
+    setCompletedSteps((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
   if (result) {
+    const plan = assessment.actionPlan(result.score, result.max);
+    const tierBadgeStyle =
+      plan.tier === 'high'
+        ? 'bg-rose-50 text-rose-700 border-rose-200'
+        : plan.tier === 'moderate'
+        ? 'bg-amber-50 text-amber-700 border-amber-200'
+        : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
     return (
-      <div className="rounded-xl2 bg-card border border-line p-6 sm:p-8 shadow-soft max-w-2xl mx-auto space-y-6 animate-breathe-in">
-        <div>
-          <span className="text-xs uppercase tracking-wider text-teal font-semibold">
-            Reflection Complete
-          </span>
-          <h2 className="font-display text-3xl text-ink mt-1">{assessment.title}</h2>
-          <p className="text-sm text-ink-mute mt-1">
-            Recorded score: {result.score} of {result.max}
-          </p>
+      <div className="rounded-xl2 bg-card border border-line p-6 sm:p-8 shadow-soft max-w-3xl mx-auto space-y-6 animate-breathe-in">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
+          <div>
+            <span className="text-xs uppercase tracking-wider text-teal-deep font-semibold">
+              Assessment Completed
+            </span>
+            <h2 className="font-display text-2xl sm:text-3xl text-ink mt-0.5">
+              {assessment.title}
+            </h2>
+          </div>
+          <div className="text-right sm:text-right">
+            <span className="text-xs text-ink-mute block">Your Score</span>
+            <span className="font-display text-2xl text-ink font-bold">
+              {result.score} <span className="text-sm font-normal text-ink-mute">/ {result.max}</span>
+            </span>
+          </div>
         </div>
 
-        <div className="rounded-xl bg-paper-soft border border-line p-5">
-          <h4 className="font-display text-lg text-ink">Personal Observation</h4>
-          <p className="text-sm text-ink-soft mt-2 leading-relaxed">
+        {/* Observation Callout */}
+        <div className="rounded-xl bg-paper-soft border border-line p-4.5">
+          <h4 className="font-display text-base text-ink font-semibold">Personal Observation</h4>
+          <p className="text-xs sm:text-sm text-ink-soft mt-1 leading-relaxed">
             {result.interpretation}
           </p>
         </div>
 
-        <div className="rounded-xl bg-paper-deep/60 p-4 text-xs text-ink-mute space-y-1">
-          <div className="font-semibold text-ink-soft">Important limitations:</div>
-          <div>{assessment.limitations}</div>
-          <div className="italic pt-1">{assessment.source}</div>
+        {/* EXACT WHAT TO DO NEXT SECTION */}
+        <div className="rounded-xl2 bg-gradient-to-b from-paper-deep/40 to-paper-soft border-2 border-teal/20 p-5 sm:p-6 space-y-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${tierBadgeStyle}`}>
+                {plan.tierLabel}
+              </span>
+              <h3 className="font-display text-xl text-ink mt-1.5 flex items-center gap-2">
+                <span>🎯 Exact Things To Do Next</span>
+              </h3>
+            </div>
+          </div>
+
+          <p className="text-xs sm:text-sm text-ink-soft font-medium leading-relaxed">
+            {plan.headline}
+          </p>
+
+          {/* Actionable Steps Checklist */}
+          <div className="space-y-2.5">
+            <span className="text-xs uppercase tracking-wider text-ink-mute font-bold block">
+              Prioritized Action Steps (Check off as you do them):
+            </span>
+            {plan.exactSteps.map((step, idx) => {
+              const isDone = Boolean(completedSteps[idx]);
+              return (
+                <div
+                  key={idx}
+                  onClick={() => toggleStep(idx)}
+                  className={`p-3 rounded-xl border text-xs sm:text-sm cursor-pointer transition flex items-start gap-3 select-none ${
+                    isDone
+                      ? 'bg-emerald-50/70 border-emerald-300 text-emerald-900 line-through opacity-80'
+                      : 'bg-card border-line text-ink hover:border-teal/50 shadow-soft'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isDone}
+                    onChange={() => {}}
+                    className="mt-0.5 rounded text-teal focus:ring-teal cursor-pointer"
+                  />
+                  <div className="flex-1 leading-relaxed font-medium">
+                    <span className="font-bold text-teal-deep mr-1.5">Step {idx + 1}:</span>
+                    {step}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Strategy & Experiment Recommended Cards */}
+          <div className="grid sm:grid-cols-2 gap-3.5 pt-2">
+            {/* Recommended Strategy Card */}
+            <div className="rounded-xl bg-card border border-line p-4 space-y-2 shadow-soft">
+              <span className="text-[11px] uppercase tracking-wider text-teal-deep font-bold block">
+                ⭐ Recommended Coping Tool
+              </span>
+              <div className="font-display text-base text-ink font-semibold">
+                {plan.recommendedStrategy.name}
+              </div>
+              <p className="text-xs text-ink-soft leading-relaxed">
+                {plan.recommendedStrategy.why}
+              </p>
+              <Link
+                href="/app/playbook"
+                className="inline-block text-xs font-semibold text-teal-deep hover:underline pt-1"
+              >
+                View in Strategy Playbook →
+              </Link>
+            </div>
+
+            {/* Suggested Experiment Card */}
+            <div className="rounded-xl bg-card border border-line p-4 space-y-2 shadow-soft">
+              <span className="text-[11px] uppercase tracking-wider text-coral-deep font-bold block">
+                🧪 Suggested Micro-Experiment
+              </span>
+              <div className="font-display text-base text-ink font-semibold">
+                3-Day Trial
+              </div>
+              <p className="text-xs text-ink-soft leading-relaxed">
+                "{plan.suggestedExperiment.question}"
+              </p>
+              <Link
+                href={`/app/experiments/new?question=${encodeURIComponent(
+                  plan.suggestedExperiment.question
+                )}&strategy=${encodeURIComponent(plan.suggestedExperiment.strategy)}`}
+                className="inline-block text-xs font-semibold text-coral-deep hover:underline pt-1"
+              >
+                Launch this experiment now →
+              </Link>
+            </div>
+          </div>
+
+          {/* Quick Shortcuts */}
+          <div className="flex flex-wrap gap-2.5 pt-1">
+            {plan.studioActivity && (
+              <Link
+                href={plan.studioActivity.path}
+                className="inline-flex items-center gap-1.5 bg-card border border-line hover:border-teal px-3.5 py-2 rounded-xl text-xs font-medium text-ink transition shadow-soft"
+              >
+                <span>🫧</span>
+                <span>{plan.studioActivity.name}</span>
+              </Link>
+            )}
+
+            <Link
+              href="/app/mentora"
+              className="inline-flex items-center gap-1.5 bg-teal/10 hover:bg-teal/20 border border-teal/30 px-3.5 py-2 rounded-xl text-xs font-semibold text-teal-deep transition shadow-soft"
+            >
+              <span>🌿</span>
+              <span>Reflect on this score with Mentora AI</span>
+            </Link>
+          </div>
         </div>
 
-        <div className="flex gap-3">
+        {/* Limitations Notice */}
+        <div className="rounded-xl bg-paper-deep/60 p-3.5 text-xs text-ink-mute space-y-1">
+          <div className="font-semibold text-ink-soft">Non-diagnostic educational reflection:</div>
+          <div>{assessment.limitations}</div>
+          <div className="italic pt-0.5">{assessment.source}</div>
+        </div>
+
+        {/* Bottom Buttons */}
+        <div className="flex flex-wrap gap-3 pt-2">
           <button
             onClick={() => router.push('/app/assess')}
-            className="bg-ink text-paper px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-soft"
+            className="bg-ink text-paper px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-soft shadow-soft transition"
           >
-            Back to assessments
+            ← Back to all assessments
           </button>
           <button
             onClick={() => router.push('/app/map')}
-            className="border border-line px-5 py-2.5 rounded-xl text-sm text-ink-soft hover:bg-paper-deep"
+            className="border border-line bg-card px-5 py-2.5 rounded-xl text-sm font-medium text-ink-soft hover:bg-paper-deep transition shadow-soft"
           >
             View in Response Map
           </button>
