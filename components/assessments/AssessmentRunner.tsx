@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AssessmentDef } from '@/lib/assessments/definitions';
 import { score } from '@/lib/assessments/scoring';
-import { saveAssessmentResult, saveDraft, getDraft } from '@/lib/data/assessments';
+import { saveAssessmentResult, saveDraft, getDraft, getLatestAssessmentResult } from '@/lib/data/assessments';
 import { useAuth } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Spinner } from '@/components/ui/Spinner';
 
 export function AssessmentRunner({
   assessment,
@@ -16,24 +17,47 @@ export function AssessmentRunner({
 }) {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const viewMode = searchParams ? searchParams.get('view') : null;
 
   const [responses, setResponses] = useState<Record<string, string>>(initialResponses);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Record<number, boolean>>({});
+  const [loadingObservation, setLoadingObservation] = useState(viewMode === 'last');
   const [result, setResult] = useState<{
     score: number;
     max: number;
     interpretation: string;
+    isPastObservation?: boolean;
   } | null>(null);
 
   useEffect(() => {
-    if (user && Object.keys(responses).length === 0) {
+    if (!user) return;
+    if (viewMode === 'last') {
+      setLoadingObservation(true);
+      getLatestAssessmentResult(user.uid, assessment.id)
+        .then((latest) => {
+          if (latest) {
+            const scored = score(assessment, latest.responses || {});
+            setResult({
+              score: latest.score !== undefined ? latest.score : scored.score,
+              max: scored.max,
+              interpretation: latest.interpretation || assessment.interpretation(latest.score ?? scored.score, scored.max),
+              isPastObservation: true,
+            });
+            if (latest.responses) {
+              setResponses(latest.responses);
+            }
+          }
+        })
+        .finally(() => setLoadingObservation(false));
+    } else if (Object.keys(responses).length === 0) {
       getDraft(user.uid, assessment.id).then((draft) => {
         if (draft) setResponses(draft);
       });
     }
-  }, [user, assessment.id]);
+  }, [user, assessment.id, viewMode]);
 
   const q = assessment.questions[currentIdx];
   const isLast = currentIdx === assessment.questions.length - 1;
@@ -81,6 +105,15 @@ export function AssessmentRunner({
     setCompletedSteps((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
 
+  if (loadingObservation) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center gap-3">
+        <Spinner size="md" />
+        <p className="text-xs text-ink-mute">Loading your last observation...</p>
+      </div>
+    );
+  }
+
   if (result) {
     const plan = assessment.actionPlan(result.score, result.max);
     const tierBadgeStyle =
@@ -92,17 +125,24 @@ export function AssessmentRunner({
 
     return (
       <div className="rounded-xl2 bg-card border border-line p-6 sm:p-8 shadow-soft max-w-3xl mx-auto space-y-6 animate-breathe-in">
+        {result.isPastObservation && (
+          <div className="bg-paper-deep text-teal-deep text-xs font-semibold px-3.5 py-2 rounded-xl inline-flex items-center gap-2 border border-line">
+            <span>📋</span>
+            <span>Viewing your most recent recorded observation</span>
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-line pb-4">
           <div>
             <span className="text-xs uppercase tracking-wider text-teal-deep font-semibold">
-              Assessment Completed
+              {result.isPastObservation ? 'Recorded Reflection' : 'Assessment Completed'}
             </span>
             <h2 className="font-display text-2xl sm:text-3xl text-ink mt-0.5">
               {assessment.title}
             </h2>
           </div>
           <div className="text-right sm:text-right">
-            <span className="text-xs text-ink-mute block">Your Score</span>
+            <span className="text-xs text-ink-mute block">Recorded Score</span>
             <span className="font-display text-2xl text-ink font-bold">
               {result.score} <span className="text-sm font-normal text-ink-mute">/ {result.max}</span>
             </span>
@@ -222,7 +262,9 @@ export function AssessmentRunner({
             )}
 
             <Link
-              href="/app/mentora"
+              href={`/app/mentora?prompt=${encodeURIComponent(
+                `I just completed the ${assessment.title} self-assessment and scored ${result.score}/${result.max} (${plan.tierLabel}). The observation noted: "${result.interpretation}". My recommended strategy is ${plan.recommendedStrategy.name}. Can you reflect with me on what this score means for my daily routine, and what small adjustments or experiments would help me most right now?`
+              )}&autoSend=true&title=${encodeURIComponent(`${assessment.title} Reflection`)}`}
               className="inline-flex items-center gap-1.5 bg-teal/10 hover:bg-teal/20 border border-teal/30 px-3.5 py-2 rounded-xl text-xs font-semibold text-teal-deep transition shadow-soft"
             >
               <span>🌿</span>
@@ -245,6 +287,17 @@ export function AssessmentRunner({
             className="bg-ink text-paper px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-ink-soft shadow-soft transition"
           >
             ← Back to all assessments
+          </button>
+          <button
+            onClick={() => {
+              setResult(null);
+              setResponses({});
+              setCurrentIdx(0);
+              setCompletedSteps({});
+            }}
+            className="bg-coral text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-coral-deep shadow-soft transition"
+          >
+            🔄 Retake Assessment
           </button>
           <button
             onClick={() => router.push('/app/map')}

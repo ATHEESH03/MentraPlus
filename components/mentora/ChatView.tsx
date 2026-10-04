@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import {
   listConversations,
@@ -19,6 +20,11 @@ import { auth } from '@/lib/firebase';
 
 export default function ChatView() {
   const { user, profile } = useAuth();
+  const searchParams = useSearchParams();
+  const autoPrompt = searchParams ? searchParams.get('prompt') : null;
+  const autoSend = searchParams ? searchParams.get('autoSend') === 'true' : false;
+  const convTitle = searchParams ? searchParams.get('title') : null;
+  const autoHandledRef = useRef(false);
 
   const [conv, setConv] = useState<Conversation | null>(null);
   const [msgs, setMsgs] = useState<ChatMessage[]>([]);
@@ -46,6 +52,28 @@ export default function ChatView() {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [msgs, busy]);
 
+  useEffect(() => {
+    if (!user || !autoPrompt || autoHandledRef.current) return;
+    autoHandledRef.current = true;
+
+    if (autoSend) {
+      (async () => {
+        try {
+          const title = convTitle || 'Assessment Reflection';
+          const newC = await createConversation(user.uid, title);
+          setConvs((prev) => [newC, ...prev]);
+          setConv(newC);
+          setMsgs([]);
+          await send(autoPrompt, newC.id);
+        } catch (e) {
+          console.error('Error auto-sending prompt to Mentora:', e);
+        }
+      })();
+    } else {
+      setInput(autoPrompt);
+    }
+  }, [user, autoPrompt, autoSend, convTitle]);
+
   const startNew = async () => {
     if (!user) return;
     const c = await createConversation(user.uid, 'Reflective Session');
@@ -58,13 +86,13 @@ export default function ChatView() {
     setInput(promptText);
   };
 
-  const send = async (explicitText?: string) => {
+  const send = async (explicitText?: string, explicitCid?: string) => {
     const textToSend = (explicitText ?? input).trim();
     if (!user || !textToSend || busy) return;
 
-    let cid = conv?.id;
+    let cid = explicitCid || conv?.id;
     if (!cid) {
-      const c = await createConversation(user.uid, textToSend.slice(0, 30));
+      const c = await createConversation(user.uid, convTitle || textToSend.slice(0, 30));
       setConv(c);
       cid = c.id;
       setConvs((prev) => [c, ...prev]);

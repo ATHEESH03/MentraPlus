@@ -2,7 +2,7 @@
 // because a stored record contains both endpoints.
 import { CheckIn, Experiment, Attempt, Insight } from '@/lib/types';
 
-export type NodeKind = 'situation' | 'emotion' | 'response' | 'strategy' | 'outcome';
+export type NodeKind = 'situation' | 'emotion' | 'strategy' | 'outcome';
 
 export interface MapNode {
   id: string;
@@ -20,6 +20,20 @@ export interface MapEdge {
   recordIds: string[];
 }
 
+export interface DiscoveredPathway {
+  id: string;
+  situation: string;
+  mood: string;
+  strategy: string;
+  outcomes: Record<string, number>;
+  totalCount: number;
+  helpfulCount: number;
+  helpfulRate: number;
+  dominantOutcome: string;
+  recordIds: string[];
+  lastOccurred: number;
+}
+
 export interface MapModel {
   nodes: MapNode[];
   edges: MapEdge[];
@@ -27,6 +41,7 @@ export interface MapModel {
   experiments: Experiment[];
   attempts: Attempt[];
   insights: Insight[];
+  pathways: DiscoveredPathway[];
 }
 
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -69,31 +84,92 @@ export function buildMap(input: {
     e.weight = e.recordIds.length;
   };
 
+  // Group check-ins into meaningful, actionable pathways: Trigger -> Mood -> Strategy
+  const pathwayMap = new Map<string, {
+    situation: string;
+    mood: string;
+    strategy: string;
+    outcomes: Record<string, number>;
+    totalCount: number;
+    helpfulCount: number;
+    recordIds: string[];
+    lastOccurred: number;
+  }>();
+
   for (const ci of input.checkIns) {
     const rec = ci.id;
-    const situation = ci.situation?.trim()
-      ? ensure(`sit:${norm(ci.situation)}`, ci.situation, 'situation', rec)
-      : null;
+    const sitLabel = ci.situation?.trim() || 'General state';
+    const situation = ensure(`sit:${norm(sitLabel)}`, sitLabel, 'situation', rec);
     const emo = ensure(`emo:${ci.mood}`, cap(ci.mood), 'emotion', rec);
-    const resp = ci.thought?.trim()
-      ? ensure(`resp:${norm(ci.thought).slice(0, 40)}`, truncate(ci.thought, 42), 'response', rec)
-      : null;
     const outcome = ensure(`out:${ci.outcome}`, cap(ci.outcome), 'outcome', rec);
     const strategies = (ci.strategiesUsed || []).map((s) =>
       ensure(`str:${norm(s)}`, s, 'strategy', rec)
     );
 
-    if (situation) link(situation.id, emo.id, rec);
-    if (resp) {
-      link(emo.id, resp.id, rec);
-      if (situation) link(situation.id, resp.id, rec);
-    }
-    for (const s of strategies) {
-      link(resp ? resp.id : emo.id, s.id, rec);
-      link(s.id, outcome.id, rec);
-    }
-    if (!strategies.length) {
-      link(resp ? resp.id : emo.id, outcome.id, rec);
+    // Link: Situation -> Emotion
+    link(situation.id, emo.id, rec);
+
+    if (strategies.length > 0) {
+      for (const s of strategies) {
+        // Link: Emotion -> Strategy
+        link(emo.id, s.id, rec);
+        // Link: Strategy -> Outcome
+        link(s.id, outcome.id, rec);
+
+        // Track in pathway map
+        const pathKey = `${sitLabel}:::${ci.mood}:::${s.label}`;
+        let p = pathwayMap.get(pathKey);
+        if (!p) {
+          p = {
+            situation: sitLabel,
+            mood: ci.mood,
+            strategy: s.label,
+            outcomes: {},
+            totalCount: 0,
+            helpfulCount: 0,
+            recordIds: [],
+            lastOccurred: ci.createdAt,
+          };
+          pathwayMap.set(pathKey, p);
+        }
+        p.outcomes[ci.outcome] = (p.outcomes[ci.outcome] || 0) + 1;
+        p.totalCount += 1;
+        if (ci.outcome === 'better' || ci.outcome === 'helpful') {
+          p.helpfulCount += 1;
+        }
+        if (!p.recordIds.includes(ci.id)) {
+          p.recordIds.push(ci.id);
+        }
+        p.lastOccurred = Math.max(p.lastOccurred, ci.createdAt);
+      }
+    } else {
+      // Direct link if no strategy was recorded: Emotion -> Outcome
+      link(emo.id, outcome.id, rec);
+
+      const pathKey = `${sitLabel}:::${ci.mood}:::Unassisted pause`;
+      let p = pathwayMap.get(pathKey);
+      if (!p) {
+        p = {
+          situation: sitLabel,
+          mood: ci.mood,
+          strategy: 'Unassisted pause',
+          outcomes: {},
+          totalCount: 0,
+          helpfulCount: 0,
+          recordIds: [],
+          lastOccurred: ci.createdAt,
+        };
+        pathwayMap.set(pathKey, p);
+      }
+      p.outcomes[ci.outcome] = (p.outcomes[ci.outcome] || 0) + 1;
+      p.totalCount += 1;
+      if (ci.outcome === 'better' || ci.outcome === 'helpful') {
+        p.helpfulCount += 1;
+      }
+      if (!p.recordIds.includes(ci.id)) {
+        p.recordIds.push(ci.id);
+      }
+      p.lastOccurred = Math.max(p.lastOccurred, ci.createdAt);
     }
   }
 
@@ -106,6 +182,34 @@ export function buildMap(input: {
     if (ctx) link(ctx.id, strat.id, ex.id);
   }
 
+  // Convert pathways to sorted array
+  const pathways: DiscoveredPathway[] = Array.from(pathwayMap.entries()).map(([key, data]) => {
+    // Find dominant outcome
+    let dominantOutcome = 'uncertain';
+    let maxVotes = 0;
+    for (const [out, count] of Object.entries(data.outcomes)) {
+      if (count > maxVotes) {
+        maxVotes = count;
+        dominantOutcome = out;
+      }
+    }
+    const helpfulRate = data.totalCount > 0 ? Math.round((data.helpfulCount / data.totalCount) * 100) : 0;
+
+    return {
+      id: key,
+      situation: data.situation,
+      mood: data.mood,
+      strategy: data.strategy,
+      outcomes: data.outcomes,
+      totalCount: data.totalCount,
+      helpfulCount: data.helpfulCount,
+      helpfulRate,
+      dominantOutcome,
+      recordIds: data.recordIds,
+      lastOccurred: data.lastOccurred,
+    };
+  }).sort((a, b) => b.totalCount - a.totalCount || b.helpfulRate - a.helpfulRate);
+
   return {
     nodes: Array.from(nodes.values()),
     edges: Array.from(edges.values()),
@@ -113,5 +217,6 @@ export function buildMap(input: {
     experiments: input.experiments,
     attempts: input.attempts,
     insights: input.insights,
+    pathways,
   };
 }

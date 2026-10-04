@@ -11,6 +11,7 @@ import { fmtDate } from '@/lib/utils';
 export default function AssessPage() {
   const { user } = useAuth();
   const [results, setResults] = useState<AssessmentResult[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -71,17 +72,55 @@ export default function AssessPage() {
               </div>
 
               {latest && (
-                <div className="pt-2 border-t border-line/60 flex justify-between items-center text-xs text-ink-mute">
+                <div className="pt-2 border-t border-line/60 flex flex-wrap justify-between items-center gap-2 text-xs text-ink-mute">
                   <span>
                     Last completed: <strong>{fmtDate(latest.completedAt)}</strong>
                     {latest.score !== undefined ? ` (Score: ${latest.score})` : ''}
                   </span>
-                  <Link
-                    href={`/app/assess/${def.id}`}
-                    className="text-teal-deep font-semibold hover:underline"
-                  >
-                    View last observation →
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(expandedId === def.id ? null : def.id)}
+                      className="text-xs text-ink-soft hover:text-ink underline"
+                    >
+                      {expandedId === def.id ? 'Hide preview' : 'Quick preview'}
+                    </button>
+                    <Link
+                      href={`/app/assess/${def.id}?view=last`}
+                      className="text-teal-deep font-semibold hover:underline flex items-center gap-1"
+                    >
+                      <span>View last observation</span>
+                      <span>→</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {latest && expandedId === def.id && (
+                <div className="mt-3 p-4 rounded-xl bg-paper-soft border border-teal/30 space-y-2 animate-breathe-in text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-teal-deep">
+                      Score: {latest.score}
+                    </span>
+                    <span className="text-ink-mute">{fmtDate(latest.completedAt)}</span>
+                  </div>
+                  <p className="text-ink-soft leading-relaxed">
+                    {latest.interpretation || 'Observation recorded.'}
+                  </p>
+                  <div className="pt-2 flex flex-wrap gap-3 items-center">
+                    <Link
+                      href={`/app/assess/${def.id}?view=last`}
+                      className="font-semibold text-teal-deep hover:underline"
+                    >
+                      Open Full Action Plan & Coping Tool →
+                    </Link>
+                    <Link
+                      href={`/app/assess/${def.id}`}
+                      className="text-ink-mute hover:text-ink"
+                    >
+                      Retake reflection
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>

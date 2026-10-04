@@ -64,6 +64,14 @@ export const listAssessments = async (uid: string): Promise<AssessmentResult[]> 
   return snap.docs.map((d) => ({ ...(d.data() as AssessmentResult), id: d.id }));
 };
 
+export const getLatestAssessmentResult = async (
+  uid: string,
+  assessmentId: string
+): Promise<AssessmentResult | undefined> => {
+  const all = await listAssessments(uid);
+  return all.find((item) => item.assessmentId === assessmentId);
+};
+
 export const saveDraft = async (
   uid: string,
   assessmentId: string,

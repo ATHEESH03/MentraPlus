@@ -14,6 +14,17 @@ export function localReflect(userMsg: string, ctx: { text?: string; hasData: boo
     return "You're very welcome! Whenever you want to explore another pattern, review what’s draining your focus, or test a new experiment, I'm here.";
   }
 
+  // Assessment reflection handler
+  if ((s.includes('assessment') || s.includes('scored')) && (s.includes('score') || s.includes('reflect') || s.includes('result') || s.includes('observation'))) {
+    return (
+      `Thank you for sharing your assessment result with me.\n\n` +
+      `Here is my reflection on what you just shared:\n\n` +
+      `• **Honoring Your Baseline**: Self-assessments are personal snapshots of your cognitive and emotional load. Scores naturally fluctuate around exams, project deadlines, and sleep debt. It represents a real-time signal of what your system is carrying right now.\n\n` +
+      `• **Pacing Over Pushing**: When load is elevated, the most counter-productive instinct is trying to "power through" without resets. Cognitive science shows that taking a deliberate 5-to-10 minute nervous system pause restores working memory and prevents study burnout.\n\n` +
+      `• **Actionable Next Step**: Review the prioritized action steps from your assessment. I recommend choosing just *one* small micro-action for today — such as a 10-minute outdoor stroll or Box Breathing session. How does your schedule look for a quick 10-minute reset?`
+    );
+  }
+
   if (ctx.hasData && ctx.text) {
     // Extract key elements from context
     const lines = ctx.text.split('\n');

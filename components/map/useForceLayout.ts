@@ -16,10 +16,9 @@ export type N = MapNode & SimulationNodeDatum;
 
 const KX: Record<NodeKind, number> = {
   situation: -260,
-  emotion: -130,
-  response: 0,
-  strategy: 150,
-  outcome: 280,
+  emotion: -90,
+  strategy: 90,
+  outcome: 260,
 };
 
 export function useForceLayout(nodes: MapNode[], edges: MapEdge[], W = 900, H = 640) {
