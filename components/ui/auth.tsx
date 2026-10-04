@@ -97,6 +97,8 @@ export function friendly(code?: string): string {
       return 'Password should be at least 6 characters.';
     case 'auth/too-many-requests':
       return 'Too many attempts. Please wait a moment and try again.';
+    case 'auth/operation-not-allowed':
+      return 'Email/Password sign-in is not enabled yet in your Firebase Console. Go to Authentication → Sign-in method and enable Email/Password.';
     default:
       return code.replace('auth/', '').replace(/-/g, ' ');
   }

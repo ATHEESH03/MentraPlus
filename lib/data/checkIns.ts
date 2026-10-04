@@ -30,14 +30,18 @@ export const saveCheckIn = async (uid: string, ci: Omit<CheckIn, 'id'>) => {
     return newCi;
   }
   const ref = doc(c(uid));
-  const data: CheckIn = {
+  const rawData: Record<string, any> = {
     ...ci,
     id: ref.id,
     createdAt: ci.createdAt || Date.now(),
     updatedAt: Date.now(),
   };
+  const data: Record<string, any> = {};
+  for (const [k, v] of Object.entries(rawData)) {
+    if (v !== undefined) data[k] = v;
+  }
   await setDoc(ref, data);
-  return data;
+  return data as CheckIn;
 };
 
 export const getCheckIn = async (uid: string, id: string): Promise<CheckIn | undefined> => {

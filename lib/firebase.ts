@@ -1,7 +1,7 @@
 // lib/firebase.ts — single init; client-safe.
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, Firestore } from 'firebase/firestore';
 
 const cfg = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -31,4 +31,12 @@ const activeConfig = firebaseConfigured
 
 const app: FirebaseApp = getApps().length ? getApps()[0] : initializeApp(activeConfig as any);
 export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
+
+// Use ignoreUndefinedProperties to prevent setDoc crashes on optional undefined fields
+export const db: Firestore = (() => {
+  try {
+    return initializeFirestore(app, { ignoreUndefinedProperties: true });
+  } catch {
+    return getFirestore(app);
+  }
+})();

@@ -73,17 +73,20 @@ export default function CheckInForm() {
     }
 
     try {
-      await saveCheckIn(user.uid, {
+      const checkInData: any = {
         mood,
         intensity,
         energy,
         stress,
         situation: situation.trim() || 'General state',
         contextTags: tags,
-        thought: thought.trim() || undefined,
         strategiesUsed: finalStrategies,
         outcome: outcome || 'uncertain',
-      } as any);
+      };
+      if (thought.trim()) {
+        checkInData.thought = thought.trim();
+      }
+      await saveCheckIn(user.uid, checkInData);
 
       try {
         await saveAchievement(user.uid, {
@@ -97,8 +100,13 @@ export default function CheckInForm() {
 
       setDone(true);
       setTimeout(() => router.replace('/app/home'), 1200);
-    } catch {
-      setErr('Could not save check-in. Please verify your connection and try again.');
+    } catch (e: any) {
+      console.error('Save check-in error:', e);
+      if (e?.code === 'permission-denied') {
+        setErr('Firestore permission denied: Your database rules currently block writes. Please update your Rules in Firebase Console.');
+      } else {
+        setErr(e?.message || 'Could not save check-in. Please verify your connection and try again.');
+      }
     } finally {
       setBusy(false);
     }
